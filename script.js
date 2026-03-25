@@ -14,6 +14,20 @@ let currentCap = 0;
 let numTemaActual = 0;
 let notasPorApartado = {}; // Diccionario para guardar el contenido de la Columna E
 
+// --- TRADUCTOR DE ROTULADORES ---
+// Convierte [[c|Texto]] en rojo, [[i|Texto]] en azul, etc.
+function aplicarRotulador(texto) {
+    if (!texto) return "";
+    return texto.replace(/\[\[([cidm])\|(.*?)\]\]/g, function(match, tipo, contenido) {
+        let claseCSS = "";
+        if (tipo === 'c') claseCSS = "r-concepto";
+        else if (tipo === 'i') claseCSS = "r-item";
+        else if (tipo === 'd') claseCSS = "r-def";
+        else if (tipo === 'm') claseCSS = "r-mixto";
+        return `<span class="${claseCSS}">${contenido}</span>`;
+    });
+}
+
 // 1. Verificación de Seguridad (PIN 2358)
 function verificarPin() {
     const input = document.getElementById('pin-input').value;
@@ -117,6 +131,7 @@ function agruparPorCapitulos(data) {
     });
     capitulosLibro = caps;
 }
+
 // Lógica de estilos para el menú
 function getEstiloBotonTema(n) {
     if (n >= 7 && n <= 10) return "border-color: #2e7d32; background: #e8f5e9; color: #1b5e20;"; 
@@ -226,11 +241,12 @@ function renderCapitulo(idx) {
         if (sec.b || sec.c) {
             const fila = document.createElement('div');
             fila.className = "fila-estudio";
+            // AQUÍ PASAMOS LOS TEXTOS POR EL TRADUCTOR DE ROTULADORES
             fila.innerHTML = `
-                <div class="margen-glosario">${sec.b || ''}</div>
+                <div class="margen-glosario">${aplicarRotulador(sec.b)}</div>
                 <div class="cuerpo-principal">
-                    <div class="tarjeta-c" style="border-color:${cap.color}" onclick="toggleD(this)">${sec.c || ''}</div>
-                    <div class="referencia-d" style="border-left-color:${cap.color}">${sec.d || ''}</div>
+                    <div class="tarjeta-c" style="border-color:${cap.color}" onclick="toggleD(this)">${aplicarRotulador(sec.c)}</div>
+                    <div class="referencia-d" style="border-left-color:${cap.color}">${aplicarRotulador(sec.d)}</div>
                 </div>`;
             contenedor.appendChild(fila);
         }
@@ -283,4 +299,3 @@ function volverAlMenu() {
     document.getElementById('pantalla-libro').classList.add('hidden');
     document.getElementById('pantalla-menu').classList.remove('hidden');
 }
-
