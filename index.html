@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Temario Interactivo - Premium</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="pantalla-login">
+        <h2 style="color: var(--color-intro); letter-spacing: 2px;">ACCESO RESTRINGIDO</h2>
+        <p style="margin-bottom: 20px; opacity: 0.8;">Introduce el PIN para desbloquear el temario</p>
+        
+        <input type="password" 
+               id="pin-input" 
+               class="pin-input" 
+               placeholder="****" 
+               maxlength="4" 
+               inputmode="numeric"
+               autocomplete="off">
+        
+        <button class="btn-login" onclick="verificarPin()">ENTRAR</button>
+    </div>
+
+    <div id="pantalla-menu" class="menu-container hidden">
+        <h1 style="margin-top: 0;">Biblioteca de Temas</h1>
+        <p style="color: #666; margin-bottom: 25px;">Selecciona una hoja para estudiar</p>
+        
+        <div id="grid-temas" class="grid-temas"></div>
+    </div>
+
+    <div id="pantalla-indice" class="menu-container hidden">
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <button class="btn-nav" style="width: 100%; max-width: 300px;" onclick="volverAlMenu()">
+                ← Volver al Temario
+            </button>
+        </div>
+        <h2 id="titulo-indice-tema">Índice</h2>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        
+        <div id="lista-indice" class="grid-indice">
+            </div>
+    </div>
+
+    <div id="pantalla-libro" class="libro-container hidden">
+        
+        <button class="btn-flotante" onclick="mostrarIndiceInterno()" title="Abrir Índice">
+            ☰
+        </button>
+
+        <header class="cabecera-fija">
+            <h2 id="tema-header"></h2>
+        </header>
+
+        <main id="contenido-dinamico" class="contenido-pagina"></main>
+
+        <footer id="pie-nav" class="pie-navegacion">
+            </footer>
+    </div>
+
+    <div id="panel-experto">
+        <div class="header-panel">
+            <h3 class="titulo-experto">ANÁLISIS Y DEFENSA</h3>
+            <button class="btn-cerrar-panel" onclick="cerrarPanel()">CERRAR ×</button>
+        </div>
+        <div id="contenido-experto" class="cuerpo-panel">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
