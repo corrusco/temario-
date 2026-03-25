@@ -290,3 +290,27 @@ body {
     font-weight: bold;
 }
 
+/* --- SISTEMA DE ROTULADO FLUORESCENTE --- */
+.r-concepto { 
+    background-color: rgba(255, 0, 0, 0.12); /* Rojo muy suave */
+    border-radius: 3px; 
+    padding: 0 2px; 
+}
+
+.r-item { 
+    background-color: rgba(0, 122, 255, 0.08); /* Azul muy suave */
+    border-radius: 3px; 
+    padding: 0 2px; 
+}
+
+.r-mixto { 
+    background-color: rgba(147, 112, 219, 0.12); /* Morado muy suave */
+    border-radius: 3px; 
+    padding: 0 2px; 
+}
+
+.r-def { 
+    background-color: rgba(0, 200, 0, 0.10); /* Verde muy suave */
+    border-radius: 3px; 
+    padding: 0 2px; 
+}
