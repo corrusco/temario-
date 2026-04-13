@@ -1,245 +1,631 @@
 /* --- VARIABLES DE COLOR Y PALETA --- */
+
 :root {
+
     --color-intro: #fb8c00;    /* Naranja estándar */
+
     --color-punto1: #2e7d32;   /* Verde */
+
     --color-punto2: #7b1fa2;   /* Violeta */
+
     --color-punto3: #3399ff;   /* Azul */
+
     --color-punto4: #c2185b;   /* Fucsia */
+
     --color-punto5: #00838f;   /* Turquesa */
+
     --color-punto6: #800020;   /* Rosa Oscuro / Burgundy */
+
     --color-concl: #ffd700;    /* Amarillo Ámbar */
+
     --color-biblio: #6a1b9a;   /* Morado */
+
     
+
     --granate-glosario: #880e4f;
+
     --ref-fondo: #fffde7;
+
     --ref-borde: #fbc02d;
+
     --negro-boton: #333333;
+
     --fondo-gris: #f4f4f4;
+
 }
 
+
+
 /* --- ESTILOS BASE --- */
+
 body {
+
     font-family: 'Segoe UI', Roboto, sans-serif;
+
     background-color: var(--fondo-gris);
+
     margin: 0;
+
     padding: 0;
+
     display: flex;
+
     flex-direction: column;
+
     align-items: center;
+
     color: #333;
+
     overflow-x: hidden; /* Evita scroll horizontal por el panel lateral */
+
 }
+
+
 
 .hidden { display: none !important; }
 
+
+
 /* --- PANTALLA DE LOGIN (PIN 2358) --- */
+
 #pantalla-login {
+
     display: flex;
+
     flex-direction: column;
+
     justify-content: center;
+
     align-items: center;
+
     height: 100vh;
+
     width: 100%;
+
     background: var(--negro-boton);
+
     color: white;
+
     position: fixed;
+
     top: 0;
+
     left: 0;
+
     z-index: 3000;
+
 }
+
+
 
 .pin-input {
+
     width: 160px;
+
     padding: 15px;
+
     font-size: 1.8rem;
+
     text-align: center;
+
     border-radius: 12px;
+
     border: 2px solid var(--color-intro);
+
     margin: 25px 0;
+
     letter-spacing: 8px;
+
     background: #fff;
+
 }
+
+
 
 .btn-login {
+
     padding: 15px 50px;
+
     background: var(--color-intro);
+
     color: white;
+
     border: none;
+
     border-radius: 10px;
+
     font-weight: 800;
+
     cursor: pointer;
+
 }
+
+
 
 /* --- MENÚ PRINCIPAL --- */
+
 .menu-container {
+
     width: 100%;
+
     max-width: 600px;
+
     padding: 20px;
+
     box-sizing: border-box;
+
     text-align: center;
+
 }
+
+
 
 .grid-temas {
+
     display: flex;
+
     flex-direction: column;
+
     gap: 12px;
+
     margin-top: 20px;
+
 }
+
+
 
 .btn-tema { 
+
     width: 100%;
+
     padding: 18px;
+
     border: 3px solid var(--color-intro); 
+
     border-radius: 12px; 
+
     background: #fff3e0; 
+
     color: var(--color-intro); 
+
     font-weight: 800; 
+
     font-size: 1rem; 
+
     cursor: pointer; 
+
     text-align: left;
+
 }
+
+
 
 /* --- ÍNDICE JERÁRQUICO --- */
+
 .grid-indice { display: flex; flex-direction: column; gap: 8px; padding-bottom: 50px; }
 
+
+
 .btn-indice {
+
     width: 100%;
+
     padding: 12px;
+
     border: 2px solid;
+
     border-radius: 8px;
+
     text-align: left;
+
     font-weight: 700;
+
 }
+
+
 
 .nivel-0 { margin-left: 0; border-width: 3px; }
+
 .nivel-1 { margin-left: 20px; width: calc(100% - 20px); font-size: 0.9rem; }
+
 .nivel-2 { margin-left: 40px; width: calc(100% - 40px); font-size: 0.85rem; font-style: italic; }
 
+
+
 /* Colores del índice */
+
 .idx-intro { border-color: var(--color-intro); color: var(--color-intro); background: #fff3e0; }
+
 .idx-p1 { border-color: var(--color-punto1); color: var(--color-punto1); background: #e8f5e9; }
+
 .idx-p2 { border-color: var(--color-punto2); color: var(--color-punto2); background: #f3e5f5; }
+
 .idx-p3 { border-color: var(--color-punto3); color: var(--color-punto3); background: #e3f2fd; }
+
 .idx-p4 { border-color: var(--color-punto4); color: var(--color-punto4); background: #fce4ec; }
+
 .idx-p5 { border-color: var(--color-punto5); color: var(--color-punto5); background: #e0f7fa; }
+
 .idx-p6 { border-color: var(--color-punto6); color: var(--color-punto6); background: #fdf2f2; }
+
 .idx-concl { border-color: var(--color-concl); color: #856404; background: #fffef2; }
+
 .idx-biblio { border-color: var(--color-biblio); color: var(--color-biblio); background: #f3e5f5; }
 
+
+
 /* --- CUERPO DEL LIBRO --- */
+
 .libro-container {
+
     width: 100%;
+
     max-width: 850px;
+
     min-height: 100vh;
+
     background: white;
+
     display: flex;
+
     flex-direction: column;
+
 }
 
+
+
 .cabecera-fija {
+
     padding: 15px;
+
     border-bottom: 2px solid #eee;
+
     background: #fff;
+
     position: sticky;
+
     top: 0;
+
     z-index: 100;
+
     text-align: center;
+
     touch-action: pan-y; /* Permite scroll vertical pero deja capturar el horizontal para el panel */
+
 }
+
+
 
 .cabecera-fija h2 { margin: 0; font-size: 0.9rem; text-transform: uppercase; font-weight: 800; }
 
+
+
 /* Indicador de Notas de Experto */
+
 .hint-notas {
+
     font-size: 0.6rem;
+
     color: var(--color-intro);
+
     font-weight: 800;
+
     text-transform: uppercase;
+
     margin-bottom: 5px;
+
     display: none; /* Se activa por JS si hay contenido en Columna E */
+
 }
+
+
 
 .contenido-pagina { flex-grow: 1; padding: 20px; padding-bottom: 120px; }
 
+
+
 .apartado-titulo { 
+
     padding: 12px;
+
     border-left: 6px solid; 
+
     font-weight: 800; 
+
     margin: 25px 0 15px 0; 
+
     background: #f9f9f9; 
+
 }
+
+
 
 /* Filas de estudio (Ajuste del Margen B) */
+
 .fila-estudio {
+
     display: grid;
+
     grid-template-columns: 85px 1fr;
+
     gap: 10px;
+
     margin-bottom: 18px;
+
 }
+
+
 
 .margen-glosario { 
+
     color: var(--granate-glosario);
+
     font-size: 0.75rem;
+
     font-weight: 800;
+
     text-align: right; 
+
     padding-right: 8px;
+
     border-right: 2.5px solid var(--granate-glosario);
+
     /* Corrección de desbordamiento */
+
     word-wrap: break-word;
+
     overflow-wrap: break-word;
+
     hyphens: auto;
+
     line-height: 1.2;
+
 }
+
+
 
 .tarjeta-c { 
-    position: relative; /* ¡CRÍTICO! Necesario para colocar el botón del altavoz dentro de la tarjeta */
+
     background: #fff;
+
     border: 1.5px solid; 
+
     border-radius: 10px;
+
     padding: 14px; 
+
     font-size: 0.95rem;
+
     line-height: 1.4;
+
 }
 
+
+
 .referencia-d { 
+
     background: var(--ref-fondo);
+
     border-left: 5px solid var(--ref-borde); 
+
     padding: 10px;
+
     margin-top: 5px;
+
     font-size: 0.85rem; 
+
     display: none;
+
 }
+
+
 
 .visible { display: block !important; }
 
+
+
 /* --- PANEL LATERAL (COLUMNA E) --- */
+
 #panel-experto {
+
     position: fixed;
+
     top: 0;
+
     right: -100%; /* Oculto por defecto */
+
     width: 88%;
+
     height: 100%;
+
     background: white;
+
     z-index: 2000;
+
     box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+
     transition: right 0.3s ease-out;
+
     display: flex;
+
     flex-direction: column;
+
 }
+
+
 
 #panel-experto.abierto { right: 0; }
 
+
+
 .header-panel {
+
     padding: 20px;
+
     background: var(--negro-boton);
+
     color: white;
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
 }
 
+
+
 .cuerpo-panel {
+
     padding: 25px;
+
     overflow-y: auto;
+
     font-size: 1rem;
-    line-height: 1.
+
+    line-height: 1.6;
+
+}
+
+
+
+.btn-cerrar-panel {
+
+    background: #ff5252;
+
+    color: white;
+
+    border: none;
+
+    padding: 8px 15px;
+
+    border-radius: 5px;
+
+    font-weight: bold;
+
+}
+
+
+
+/* --- BOTONES FLOTANTES Y NAV --- */
+
+.btn-flotante {
+
+    position: fixed;
+
+    bottom: 85px;
+
+    right: 15px;
+
+    width: 50px;
+
+    height: 50px;
+
+    border-radius: 50%;
+
+    background: var(--negro-boton);
+
+    color: white;
+
+    z-index: 500;
+
+    font-size: 1.2rem;
+
+    border: 2px solid #fff;
+
+}
+
+
+
+.pie-navegacion { 
+
+    position: fixed;
+
+    bottom: 0;
+
+    width: 100%;
+
+    max-width: 850px;
+
+    background: #fff; 
+
+    border-top: 1px solid #ddd;
+
+    display: flex;
+
+    padding: 10px;
+
+    z-index: 500;
+
+}
+
+
+
+.btn-nav { 
+
+    flex: 1;
+
+    margin: 0 5px;
+
+    padding: 12px;
+
+    background: #eee;
+
+    border: 1px solid #ccc;
+
+    border-radius: 5px;
+
+    font-weight: bold;
+
+}
+
+
+
+/* --- SISTEMA DE ROTULADO FLUORESCENTE --- */
+
+.r-concepto { 
+
+    background-color: rgba(255, 0, 0, 0.12); /* Rojo muy suave */
+
+    border-radius: 3px; 
+
+    padding: 0 2px; 
+
+}
+
+
+
+.r-item { 
+
+    background-color: rgba(0, 122, 255, 0.08); /* Azul muy suave */
+
+    border-radius: 3px; 
+
+    padding: 0 2px; 
+
+}
+
+
+
+.r-mixto { 
+
+    background-color: rgba(147, 112, 219, 0.12); /* Morado muy suave */
+
+    border-radius: 3px; 
+
+    padding: 0 2px; 
+
+}
+
+
+
+.r-def { 
+
+    background-color: rgba(0, 200, 0, 0.10); /* Verde muy suave */
+
+    border-radius: 3px; 
+
+    padding: 0 2px; 
+
+}
