@@ -28,16 +28,25 @@ function aplicarRotulador(texto) {
     });
 }
 
-// --- NUEVA FUNCIÓN: LECTOR DE VOZ (TEXT-TO-SPEECH) ---
+// --- LECTOR DE VOZ (TEXT-TO-SPEECH) ---
 function leerVoz(btn, event) {
     event.stopPropagation(); 
 
+    // 1. Guardamos en la memoria si ESTE botón estaba en modo "Parar" antes de tocar nada
+    const estabaLeyendo = (btn.innerText === "⏹️");
+
+    // 2. Si el móvil está hablando, lo callamos y ponemos todos los botones en "🔊"
     if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         document.querySelectorAll('.btn-leer').forEach(b => b.innerText = "🔊");
-        if (btn.innerText === "⏹️") return; 
+        
+        // 3. Si le habías dado al botón que ya estaba sonando, terminamos aquí. ¡Ya está parado!
+        if (estabaLeyendo) {
+            return; 
+        }
     }
 
+    // 4. Si llegamos hasta aquí, es que queremos que empiece a leer
     btn.innerText = "⏹️";
 
     const textoDiv = btn.nextElementSibling;
