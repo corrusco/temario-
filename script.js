@@ -16,7 +16,7 @@ let notasPorApartado = {};
 
 // --- VARIABLES DE CONTROL DE VOZ ---
 let mensajeActual = null;
-let estaPausado = false; // Control manual de pausa
+let estaPausado = false; 
 let listaLecturaPunto = [];
 let indiceLecturaPunto = 0;
 let modoLecturaPunto = false;
@@ -34,7 +34,7 @@ function aplicarRotulador(texto) {
     });
 }
 
-// --- GESTIÓN DE VOZ INDIVIDUAL ---
+// --- GESTIÓN DE VOZ INDIVIDUAL (TARJETAS) ---
 function gestionarVoz(btn, event, accion) {
     event.stopPropagation(); 
     const tarjeta = btn.closest('.tarjeta-c');
@@ -42,23 +42,18 @@ function gestionarVoz(btn, event, accion) {
     const textoC = tarjeta.querySelector('.texto-c');
     const textoLimpio = textoC.innerText;
 
-    // ACCIÓN: STOP (Reinicia de verdad)
     if (accion === 'stop') {
         window.speechSynthesis.cancel();
         estaPausado = false;
         mensajeActual = null;
         modoLecturaPunto = false;
         document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
-        document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
         document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
         return;
     }
 
-    // ACCIÓN: PLAY / PAUSA
     if (accion === 'playPause') {
-        // Si el sistema ya está hablando (sonando o pausado)
         if (window.speechSynthesis.speaking) {
-            // Y es el mismo texto que ya teníamos cargado
             if (mensajeActual && mensajeActual.text === textoLimpio) {
                 if (estaPausado) {
                     window.speechSynthesis.resume();
@@ -73,7 +68,6 @@ function gestionarVoz(btn, event, accion) {
             }
         }
 
-        // Si es un texto nuevo o no estaba hablando, reseteamos e iniciamos
         window.speechSynthesis.cancel();
         document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
         
@@ -92,57 +86,80 @@ function gestionarVoz(btn, event, accion) {
     }
 }
 
-// --- GESTIÓN DE VOZ PUNTO COMPLETO ---
+// --- GESTIÓN DE VOZ PUNTO COMPLETO (TÍTULO + COLUMNA C) ---
 function gestionarVozPunto(btn, event, tituloTexto, accion) {
     event.stopPropagation();
+
+    // 1. ACCIÓN STOP
     if (accion === 'stop') {
         window.speechSynthesis.cancel();
         modoLecturaPunto = false;
         estaPausado = false;
-        document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
         document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
         return;
     }
 
-    if (modoLecturaPunto && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        modoLecturaPunto = false;
-        btn.innerText = "▶️ PUNTO";
+    // 2. ACCIÓN PAUSE
+    if (accion === 'pause') {
+        if (window.speechSynthesis.speaking && !estaPausado) {
+            window.speechSynthesis.pause();
+            estaPausado = true;
+        }
         return;
     }
 
-    const itemsParaLeer = [{ texto: tituloTexto, elemento: null }];
-    let siguiente = btn.closest('.apartado-titulo').nextElementSibling;
-    while (siguiente && !siguiente.classList.contains('apartado-titulo')) {
-        const textoC = siguiente.querySelector('.texto-c');
-        if (textoC) itemsParaLeer.push({ texto: textoC.innerText, elemento: textoC.closest('.tarjeta-c') });
-        siguiente = siguiente.nextElementSibling;
-    }
+    // 3. ACCIÓN PLAY
+    if (accion === 'play') {
+        if (estaPausado) {
+            window.speechSynthesis.resume();
+            estaPausado = false;
+            return;
+        }
 
-    if (itemsParaLeer.length === 0) return;
-    modoLecturaPunto = true;
-    indiceLecturaPunto = 0;
-    listaLecturaPunto = itemsParaLeer;
-    btn.innerText = "⏹️ PARAR";
-    leerSiguienteDelPunto();
+        if (window.speechSynthesis.speaking) return;
+
+        const itemsParaLeer = [{ texto: tituloTexto, elemento: null }];
+        let siguiente = btn.closest('.apartado-titulo').nextElementSibling;
+        
+        while (siguiente && !siguiente.classList.contains('apartado-titulo')) {
+            const textoC = siguiente.querySelector('.texto-c');
+            if (textoC) itemsParaLeer.push({ texto: textoC.innerText, elemento: textoC.closest('.tarjeta-c') });
+            siguiente = siguiente.nextElementSibling;
+        }
+
+        if (itemsParaLeer.length === 0) return;
+
+        modoLecturaPunto = true;
+        indiceLecturaPunto = 0;
+        listaLecturaPunto = itemsParaLeer;
+        estaPausado = false;
+        
+        leerSiguienteDelPunto();
+    }
 }
 
 function leerSiguienteDelPunto() {
     if (!modoLecturaPunto || indiceLecturaPunto >= listaLecturaPunto.length) {
-        document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
         document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
         modoLecturaPunto = false;
         return;
     }
+
     const item = listaLecturaPunto[indiceLecturaPunto];
+    
     document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
     if (item.elemento) {
         item.elemento.classList.add('leyendo-ahora');
         item.elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+
     const mensaje = new SpeechSynthesisUtterance(item.texto);
     mensaje.lang = 'es-ES';
-    mensaje.onend = () => { indiceLecturaPunto++; leerSiguienteDelPunto(); };
+    mensaje.onend = () => {
+        indiceLecturaPunto++;
+        leerSiguienteDelPunto();
+    };
+
     window.speechSynthesis.speak(mensaje);
 }
 
@@ -204,7 +221,7 @@ async function cargarDatos(gid) {
         const csvText = await response.text();
         const filasRaw = csvText.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         const data = filasRaw.map(linea => {
-            const cols = linea.split(/,(?=(?:(?:[^"]*"){2})*[^2]*$)/);
+            const cols = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             return {
                 a: cols[0]?.replace(/^"|"$/g, '').trim() || "",
                 b: cols[1]?.replace(/^"|"$/g, '').trim() || "",
@@ -331,7 +348,8 @@ function renderCapitulo(idx) {
             divA.innerHTML = `
                 <span>${sec.a}</span>
                 <div class="controles-punto">
-                    <button class="btn-punto btn-play-punto" onclick="gestionarVozPunto(this, event, '${sec.a}', 'play')">▶️ PUNTO</button>
+                    <button class="btn-punto" onclick="gestionarVozPunto(this, event, '${sec.a}', 'play')">▶️</button>
+                    <button class="btn-punto" onclick="gestionarVozPunto(this, event, '${sec.a}', 'pause')">⏸️</button>
                     <button class="btn-punto" onclick="gestionarVozPunto(this, event, '${sec.a}', 'stop')">⏹️</button>
                 </div>`;
 
