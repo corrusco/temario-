@@ -1,14 +1,14 @@
 /* --- VARIABLES DE COLOR Y PALETA --- */
 :root {
-    --color-intro: #fb8c00;    /* Naranja estándar */
-    --color-punto1: #2e7d32;   /* Verde */
-    --color-punto2: #7b1fa2;   /* Violeta */
-    --color-punto3: #3399ff;   /* Azul */
-    --color-punto4: #c2185b;   /* Fucsia */
-    --color-punto5: #00838f;   /* Turquesa */
-    --color-punto6: #800020;   /* Rosa Oscuro / Burgundy */
-    --color-concl: #ffd700;    /* Amarillo Ámbar */
-    --color-biblio: #6a1b9a;   /* Morado */
+    --color-intro: #fb8c00;
+    --color-punto1: #2e7d32;
+    --color-punto2: #7b1fa2;
+    --color-punto3: #3399ff;
+    --color-punto4: #c2185b;
+    --color-punto5: #00838f;
+    --color-punto6: #800020;
+    --color-concl: #ffd700;
+    --color-biblio: #6a1b9a;
     
     --granate-glosario: #880e4f;
     --ref-fondo: #fffde7;
@@ -143,23 +143,17 @@ body {
     top: 0;
     z-index: 100;
     text-align: center;
-    touch-action: pan-y;
 }
 
 .cabecera-fija h2 { margin: 0; font-size: 0.9rem; text-transform: uppercase; font-weight: 800; }
 
-.hint-notas {
-    font-size: 0.6rem;
-    color: var(--color-intro);
-    font-weight: 800;
-    text-transform: uppercase;
-    margin-bottom: 5px;
-    display: none;
-}
-
 .contenido-pagina { flex-grow: 1; padding: 20px; padding-bottom: 120px; }
 
+/* TÍTULO DEL APARTADO CON BOTONES */
 .apartado-titulo { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 12px;
     border-left: 6px solid; 
     font-weight: 800; 
@@ -167,6 +161,24 @@ body {
     background: #f9f9f9; 
 }
 
+.controles-punto {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-punto {
+    background: var(--negro-boton);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* FILAS Y TARJETAS */
 .fila-estudio {
     display: grid;
     grid-template-columns: 85px 1fr;
@@ -181,21 +193,25 @@ body {
     text-align: right; 
     padding-right: 8px;
     border-right: 2.5px solid var(--granate-glosario);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-    line-height: 1.2;
 }
 
 .tarjeta-c { 
-    position: relative; /* Crítico para los botones */
+    position: relative;
     background: #fff;
     border: 1.5px solid; 
     border-radius: 10px;
     padding: 14px; 
     font-size: 0.95rem;
     line-height: 1.4;
-    padding-bottom: 45px; /* Espacio extra para que el texto no tape los botones */
+    padding-bottom: 45px;
+    transition: background-color 0.4s ease;
+}
+
+/* EFECTO "LECTOR" PARA TARJETAS */
+.leyendo-ahora {
+    background-color: rgba(251, 140, 0, 0.1) !important;
+    border-color: var(--color-intro) !important;
+    box-shadow: 0 0 10px rgba(251, 140, 0, 0.2);
 }
 
 .referencia-d { 
@@ -209,7 +225,7 @@ body {
 
 .visible { display: block !important; }
 
-/* --- CONTROLES DE VOZ --- */
+/* CONTROLES DE VOZ INDIVIDUALES */
 .controles-voz {
     position: absolute;
     bottom: 8px;
@@ -223,8 +239,8 @@ body {
     background: #ffffff;
     border: 1px solid #ddd;
     border-radius: 50%;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     font-size: 1.1rem;
     cursor: pointer;
     display: flex;
@@ -233,12 +249,7 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.btn-voz:active {
-    transform: scale(0.9);
-    background: #f0f0f0;
-}
-
-/* --- PANEL LATERAL --- */
+/* PANEL LATERAL Y NAV */
 #panel-experto {
     position: fixed;
     top: 0;
@@ -255,25 +266,6 @@ body {
 
 #panel-experto.abierto { right: 0; }
 
-.header-panel {
-    padding: 20px;
-    background: var(--negro-boton);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.btn-cerrar-panel {
-    background: #ff5252;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-weight: bold;
-}
-
-/* --- NAVEGACIÓN --- */
 .pie-navegacion { 
     position: fixed;
     bottom: 0;
@@ -296,7 +288,7 @@ body {
     font-weight: bold;
 }
 
-/* --- ROTULADORES --- */
+/* ROTULADORES */
 .r-concepto { background-color: rgba(255, 0, 0, 0.12); border-radius: 3px; padding: 0 2px; }
 .r-item { background-color: rgba(0, 122, 255, 0.08); border-radius: 3px; padding: 0 2px; }
 .r-mixto { background-color: rgba(147, 112, 219, 0.12); border-radius: 3px; padding: 0 2px; }
