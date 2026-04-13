@@ -28,39 +28,48 @@ function aplicarRotulador(texto) {
     });
 }
 
-// --- LECTOR DE VOZ (TEXT-TO-SPEECH) ---
+// Variable global para que la App recuerde qué está leyendo
+let mensajeActual = null; 
+
 function leerVoz(btn, event) {
     event.stopPropagation(); 
-
-    // 1. Guardamos en la memoria si ESTE botón estaba en modo "Parar" antes de tocar nada
-    const estabaLeyendo = (btn.innerText === "⏹️");
-
-    // 2. Si el móvil está hablando, lo callamos y ponemos todos los botones en "🔊"
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        document.querySelectorAll('.btn-leer').forEach(b => b.innerText = "🔊");
-        
-        // 3. Si le habías dado al botón que ya estaba sonando, terminamos aquí. ¡Ya está parado!
-        if (estabaLeyendo) {
-            return; 
-        }
-    }
-
-    // 4. Si llegamos hasta aquí, es que queremos que empiece a leer
-    btn.innerText = "⏹️";
-
     const textoDiv = btn.nextElementSibling;
     const textoLimpio = textoDiv.innerText;
 
-    const mensaje = new SpeechSynthesisUtterance(textoLimpio);
-    mensaje.lang = 'es-ES'; 
-    mensaje.rate = 1.0;     
+    // CASO A: Ya hay algo sonando o pausado
+    if (window.speechSynthesis.speaking) {
+        
+        // ¿Es el MISMO botón que ya estaba activo?
+        if (mensajeActual && mensajeActual.text === textoLimpio) {
+            if (window.speechSynthesis.paused) {
+                // Estaba en pausa -> Reanudar
+                window.speechSynthesis.resume();
+                btn.innerText = "⏸️";
+            } else {
+                // Estaba sonando -> Pausar
+                window.speechSynthesis.pause();
+                btn.innerText = "▶️";
+            }
+            return;
+        } else {
+            // Es un botón DIFERENTE: Paramos todo lo anterior y reseteamos iconos
+            window.speechSynthesis.cancel();
+            document.querySelectorAll('.btn-leer').forEach(b => b.innerText = "🔊");
+        }
+    }
 
-    mensaje.onend = () => {
+    // CASO B: Empezar lectura de cero
+    btn.innerText = "⏸️";
+    mensajeActual = new SpeechSynthesisUtterance(textoLimpio);
+    mensajeActual.lang = 'es-ES';
+    mensajeActual.rate = 1.0;
+
+    mensajeActual.onend = () => {
         btn.innerText = "🔊";
+        mensajeActual = null;
     };
 
-    window.speechSynthesis.speak(mensaje);
+    window.speechSynthesis.speak(mensajeActual);
 }
 
 // 1. Verificación de Seguridad (PIN 2358)
