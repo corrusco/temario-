@@ -149,7 +149,7 @@ body {
 
 .contenido-pagina { flex-grow: 1; padding: 20px; padding-bottom: 120px; }
 
-/* TÍTULO DEL APARTADO CON BOTONES */
+/* TÍTULO DEL APARTADO CON 3 BOTONES */
 .apartado-titulo { 
     display: flex;
     justify-content: space-between;
@@ -161,22 +161,31 @@ body {
     background: #f9f9f9; 
 }
 
+.apartado-titulo span {
+    flex: 1;
+    padding-right: 10px;
+    font-size: 0.9rem;
+}
+
 .controles-punto {
     display: flex;
-    gap: 6px;
+    gap: 4px;
 }
 
 .btn-punto {
     background: var(--negro-boton);
     color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.btn-punto:active { transform: scale(0.9); }
 
 /* FILAS Y TARJETAS */
 .fila-estudio {
@@ -203,14 +212,15 @@ body {
     padding: 14px; 
     font-size: 0.95rem;
     line-height: 1.4;
-    padding-bottom: 50px; /* Hueco para que no tapen los botones el texto */
-    transition: background-color 0.4s ease;
+    padding-bottom: 50px; /* Hueco para controles individuales */
+    transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
-/* EFECTO "LECTOR" PARA TARJETAS */
+/* EFECTO DE RESALTADO AL LEER */
 .leyendo-ahora {
     background-color: rgba(251, 140, 0, 0.1) !important;
     border-color: var(--color-intro) !important;
+    box-shadow: 0 0 10px rgba(251, 140, 0, 0.15);
 }
 
 .referencia-d { 
@@ -224,7 +234,7 @@ body {
 
 .visible { display: block !important; }
 
-/* CONTROLES DE VOZ INDIVIDUALES */
+/* CONTROLES DE VOZ INDIVIDUALES (PLAY/PAUSE y STOP) */
 .controles-voz {
     position: absolute;
     bottom: 8px;
@@ -238,8 +248,8 @@ body {
     background: #ffffff;
     border: 1px solid #ddd;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     font-size: 1.1rem;
     cursor: pointer;
     display: flex;
@@ -248,7 +258,9 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* PANEL LATERAL Y NAV */
+.btn-voz:active { transform: scale(0.9); background: #f0f0f0; }
+
+/* PANEL LATERAL Y NAVEGACIÓN */
 #panel-experto {
     position: fixed;
     top: 0;
@@ -264,6 +276,24 @@ body {
 }
 
 #panel-experto.abierto { right: 0; }
+
+.header-panel {
+    padding: 20px;
+    background: var(--negro-boton);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-cerrar-panel {
+    background: #ff5252;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+}
 
 .pie-navegacion { 
     position: fixed;
@@ -287,7 +317,7 @@ body {
     font-weight: bold;
 }
 
-/* ROTULADORES */
+/* --- ROTULADORES --- */
 .r-concepto { background-color: rgba(255, 0, 0, 0.12); border-radius: 3px; padding: 0 2px; }
 .r-item { background-color: rgba(0, 122, 255, 0.08); border-radius: 3px; padding: 0 2px; }
 .r-mixto { background-color: rgba(147, 112, 219, 0.12); border-radius: 3px; padding: 0 2px; }
