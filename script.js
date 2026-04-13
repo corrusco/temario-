@@ -15,7 +15,6 @@ let numTemaActual = 0;
 let notasPorApartado = {}; // Diccionario para guardar el contenido de la Columna E
 
 // --- TRADUCTOR DE ROTULADORES ---
-// Convierte [[c|Texto]] en rojo, [[i|Texto]] en azul, etc.
 function aplicarRotulador(texto) {
     if (!texto) return "";
     return texto.replace(/\[\[([cidm])\|(.*?)\]\]/g, function(match, tipo, contenido) {
@@ -28,48 +27,59 @@ function aplicarRotulador(texto) {
     });
 }
 
-// Variable global para que la App recuerde qué está leyendo
+// --- GESTIÓN DE VOZ (PLAY, PAUSA, STOP) ---
 let mensajeActual = null; 
 
-function leerVoz(btn, event) {
+function gestionarVoz(btn, event, accion) {
     event.stopPropagation(); 
-    const textoDiv = btn.nextElementSibling;
+    
+    // Localizamos la tarjeta y el texto
+    const tarjeta = btn.closest('.tarjeta-c');
+    const btnPlay = tarjeta.querySelector('.btn-play');
+    const textoDiv = tarjeta.querySelector('.texto-c');
     const textoLimpio = textoDiv.innerText;
 
-    // CASO A: Ya hay algo sonando o pausado
-    if (window.speechSynthesis.speaking) {
-        
-        // ¿Es el MISMO botón que ya estaba activo?
-        if (mensajeActual && mensajeActual.text === textoLimpio) {
-            if (window.speechSynthesis.paused) {
-                // Estaba en pausa -> Reanudar
-                window.speechSynthesis.resume();
-                btn.innerText = "⏸️";
-            } else {
-                // Estaba sonando -> Pausar
-                window.speechSynthesis.pause();
-                btn.innerText = "▶️";
-            }
-            return;
-        } else {
-            // Es un botón DIFERENTE: Paramos todo lo anterior y reseteamos iconos
-            window.speechSynthesis.cancel();
-            document.querySelectorAll('.btn-leer').forEach(b => b.innerText = "🔊");
-        }
+    // ACCIÓN: DETENER (STOP) - Corta la voz y reinicia iconos
+    if (accion === 'stop') {
+        window.speechSynthesis.cancel();
+        document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
+        mensajeActual = null;
+        return;
     }
 
-    // CASO B: Empezar lectura de cero
-    btn.innerText = "⏸️";
-    mensajeActual = new SpeechSynthesisUtterance(textoLimpio);
-    mensajeActual.lang = 'es-ES';
-    mensajeActual.rate = 1.0;
+    // ACCIÓN: PLAY / PAUSA
+    if (accion === 'playPause') {
+        if (window.speechSynthesis.speaking) {
+            // Si es la misma tarjeta, alternamos pausa/resumen
+            if (mensajeActual && mensajeActual.text === textoLimpio) {
+                if (window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                    btnPlay.innerText = "⏸️";
+                } else {
+                    window.speechSynthesis.pause();
+                    btnPlay.innerText = "▶️";
+                }
+                return;
+            } else {
+                // Si es otra tarjeta, cancelamos lo anterior
+                window.speechSynthesis.cancel();
+                document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
+            }
+        }
 
-    mensajeActual.onend = () => {
-        btn.innerText = "🔊";
-        mensajeActual = null;
-    };
+        // Empezar lectura de cero
+        btnPlay.innerText = "⏸️";
+        mensajeActual = new SpeechSynthesisUtterance(textoLimpio);
+        mensajeActual.lang = 'es-ES';
+        mensajeActual.rate = 1.0;
 
-    window.speechSynthesis.speak(mensajeActual);
+        mensajeActual.onend = () => {
+            btnPlay.innerText = "🔊";
+            mensajeActual = null;
+        };
+
+        window.speechSynthesis.speak(mensajeActual);
+    }
 }
 
 // 1. Verificación de Seguridad (PIN 2358)
@@ -139,7 +149,7 @@ async function cargarDatos(gid) {
                 b: cols[1]?.replace(/^"|"$/g, '').trim() || "",
                 c: cols[2]?.replace(/^"|"$/g, '').trim() || "",
                 d: cols[3]?.replace(/^"|"$/g, '').trim() || "",
-                e: cols[4]?.replace(/^"|"$/g, '').trim() || "" // SE LEE LA COLUMNA E
+                e: cols[4]?.replace(/^"|"$/g, '').trim() || "" 
             };
         }).filter(f => f.a || f.b || f.c);
 
@@ -150,7 +160,7 @@ async function cargarDatos(gid) {
 function agruparPorCapitulos(data) {
     let caps = [];
     let nombreCapituloActual = ""; 
-    notasPorApartado = {}; // Vaciamos las notas anteriores
+    notasPorApartado = {}; 
 
     data.forEach((fila) => {
         let bloqueFila = "";
@@ -161,7 +171,6 @@ function agruparPorCapitulos(data) {
         else if (t.startsWith("bibliografía")) bloqueFila = "BIBLIO";
         else if (/^\d+\./.test(fila.a)) bloqueFila = t.match(/^\d+/)[0]; 
 
-        // GUARDADO DE NOTA EXPERTO: Se asocia el texto exacto de la Columna A con su valor en la Columna E
         if (fila.a && fila.e && !notasPorApartado[fila.a]) {
             notasPorApartado[fila.a] = fila.e;
         }
@@ -176,7 +185,6 @@ function agruparPorCapitulos(data) {
     capitulosLibro = caps;
 }
 
-// Lógica de estilos para el menú
 function getEstiloBotonTema(n) {
     if (n >= 7 && n <= 10) return "border-color: #2e7d32; background: #e8f5e9; color: #1b5e20;"; 
     if (n >= 14 && n <= 19) return "border-color: #c62828; background: #ffebee; color: #b71c1c;"; 
@@ -264,7 +272,6 @@ function renderCapitulo(idx) {
             divA.style.borderColor = cap.color;
             divA.innerHTML = sec.a;
 
-            // --- MAGIA DEL GESTO TÁCTIL APLICADA AL TÍTULO DEL APARTADO ---
             let touchStartX = 0;
             divA.addEventListener('touchstart', e => {
                 touchStartX = e.changedTouches[0].screenX;
@@ -272,7 +279,6 @@ function renderCapitulo(idx) {
 
             divA.addEventListener('touchend', e => {
                 let touchEndX = e.changedTouches[0].screenX;
-                // Si arrastramos de izquierda a derecha más de 50px
                 if (touchEndX > touchStartX + 50) {
                     abrirPanelExperto(sec.a);
                 }
@@ -285,12 +291,15 @@ function renderCapitulo(idx) {
         if (sec.b || sec.c) {
             const fila = document.createElement('div');
             fila.className = "fila-estudio";
-            // AQUÍ METEMOS EL BOTÓN DE LECTURA Y PASAMOS LOS TEXTOS POR EL ROTULADOR
+            // DIBUJAMOS LOS CONTROLES DE VOZ (PLAY/PAUSE Y STOP)
             fila.innerHTML = `
                 <div class="margen-glosario">${aplicarRotulador(sec.b)}</div>
                 <div class="cuerpo-principal">
                     <div class="tarjeta-c" style="border-color:${cap.color}">
-                        <button class="btn-leer" onclick="leerVoz(this, event)">🔊</button>
+                        <div class="controles-voz">
+                            <button class="btn-voz btn-play" onclick="gestionarVoz(this, event, 'playPause')">🔊</button>
+                            <button class="btn-voz" onclick="gestionarVoz(this, event, 'stop')">⏹️</button>
+                        </div>
                         <div class="texto-c" onclick="toggleD(this.parentElement)">${aplicarRotulador(sec.c)}</div>
                     </div>
                     <div class="referencia-d" style="border-left-color:${cap.color}">${aplicarRotulador(sec.d)}</div>
@@ -302,12 +311,8 @@ function renderCapitulo(idx) {
     window.scrollTo(0,0);
 }
 
-/* --- LÓGICA DEL PANEL DE EXPERTOS --- */
 function abrirPanelExperto(tituloApartado) {
-    // Buscamos si existe nota guardada para este subtítulo exacto
     const nota = notasPorApartado[tituloApartado];
-
-    // Solo se abre si la celda E contenía algo
     if (nota && nota.trim() !== "") {
         document.getElementById('contenido-experto').innerHTML = nota;
         document.getElementById('panel-experto').classList.add('abierto');
@@ -318,7 +323,6 @@ function cerrarPanel() {
     document.getElementById('panel-experto').classList.remove('abierto');
 }
 
-/* --- NAVEGACIÓN Y EXTRAS --- */
 function toggleD(elemento) { 
     elemento.nextElementSibling.classList.toggle('visible'); 
 }
