@@ -12,7 +12,13 @@ const GIDS = {
 let capitulosLibro = [];
 let currentCap = 0;
 let numTemaActual = 0;
-let notasPorApartado = {}; // Diccionario para guardar el contenido de la Columna E
+let notasPorApartado = {}; 
+
+// Variables para la lectura continua del punto
+let listaLecturaPunto = [];
+let indiceLecturaPunto = 0;
+let modoLecturaPunto = false;
+let mensajeActual = null;
 
 // --- TRADUCTOR DE ROTULADORES ---
 function aplicarRotulador(texto) {
@@ -27,19 +33,13 @@ function aplicarRotulador(texto) {
     });
 }
 
-// --- GESTIÓN DE VOZ (PLAY, PAUSA, STOP) ---
-let mensajeActual = null; 
-
+// --- LECTOR DE CELDA INDIVIDUAL (CON PAUSA/STOP) ---
 function gestionarVoz(btn, event, accion) {
     event.stopPropagation(); 
-    
-    // Localizamos la tarjeta y el texto
     const tarjeta = btn.closest('.tarjeta-c');
     const btnPlay = tarjeta.querySelector('.btn-play');
-    const textoDiv = tarjeta.querySelector('.texto-c');
-    const textoLimpio = textoDiv.innerText;
+    const textoLimpio = tarjeta.querySelector('.texto-c').innerText;
 
-    // ACCIÓN: DETENER (STOP) - Corta la voz y reinicia iconos
     if (accion === 'stop') {
         window.speechSynthesis.cancel();
         document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
@@ -47,10 +47,8 @@ function gestionarVoz(btn, event, accion) {
         return;
     }
 
-    // ACCIÓN: PLAY / PAUSA
     if (accion === 'playPause') {
         if (window.speechSynthesis.speaking) {
-            // Si es la misma tarjeta, alternamos pausa/resumen
             if (mensajeActual && mensajeActual.text === textoLimpio) {
                 if (window.speechSynthesis.paused) {
                     window.speechSynthesis.resume();
@@ -61,25 +59,87 @@ function gestionarVoz(btn, event, accion) {
                 }
                 return;
             } else {
-                // Si es otra tarjeta, cancelamos lo anterior
                 window.speechSynthesis.cancel();
                 document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
             }
         }
 
-        // Empezar lectura de cero
         btnPlay.innerText = "⏸️";
         mensajeActual = new SpeechSynthesisUtterance(textoLimpio);
         mensajeActual.lang = 'es-ES';
-        mensajeActual.rate = 1.0;
-
-        mensajeActual.onend = () => {
-            btnPlay.innerText = "🔊";
-            mensajeActual = null;
-        };
-
+        mensajeActual.onend = () => { btnPlay.innerText = "🔊"; mensajeActual = null; };
         window.speechSynthesis.speak(mensajeActual);
     }
+}
+
+// --- LECTOR DE PUNTO COMPLETO (TÍTULO + COLUMNA C) ---
+function gestionarVozPunto(btn, event, tituloTexto, accion) {
+    event.stopPropagation();
+
+    if (accion === 'stop') {
+        window.speechSynthesis.cancel();
+        modoLecturaPunto = false;
+        document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
+        document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
+        return;
+    }
+
+    // Si ya está leyendo este punto y pulsamos de nuevo, paramos
+    if (modoLecturaPunto && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        modoLecturaPunto = false;
+        btn.innerText = "▶️ PUNTO";
+        return;
+    }
+
+    // Construimos la lista: primero el título, luego las columnas C
+    const itemsParaLeer = [];
+    itemsParaLeer.push({ texto: tituloTexto, elemento: null });
+
+    let siguiente = btn.closest('.apartado-titulo').nextElementSibling;
+    while (siguiente && !siguiente.classList.contains('apartado-titulo')) {
+        const textoC = siguiente.querySelector('.texto-c');
+        if (textoC) {
+            itemsParaLeer.push({ texto: textoC.innerText, elemento: textoC.closest('.tarjeta-c') });
+        }
+        siguiente = siguiente.nextElementSibling;
+    }
+
+    if (itemsParaLeer.length === 0) return;
+
+    modoLecturaPunto = true;
+    indiceLecturaPunto = 0;
+    listaLecturaPunto = itemsParaLeer;
+    btn.innerText = "⏹️ PARAR";
+    
+    leerSiguienteDelPunto();
+}
+
+function leerSiguienteDelPunto() {
+    if (!modoLecturaPunto || indiceLecturaPunto >= listaLecturaPunto.length) {
+        document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
+        document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
+        modoLecturaPunto = false;
+        return;
+    }
+
+    const item = listaLecturaPunto[indiceLecturaPunto];
+    
+    // Resaltado visual si es una tarjeta
+    document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
+    if (item.elemento) {
+        item.elemento.classList.add('leyendo-ahora');
+        item.elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const mensaje = new SpeechSynthesisUtterance(item.texto);
+    mensaje.lang = 'es-ES';
+    mensaje.onend = () => {
+        indiceLecturaPunto++;
+        leerSiguienteDelPunto();
+    };
+
+    window.speechSynthesis.speak(mensaje);
 }
 
 // 1. Verificación de Seguridad (PIN 2358)
@@ -95,7 +155,7 @@ function verificarPin() {
     }
 }
 
-// 2. Lógica de Colores Dinámicos
+// 2. Lógica de Colores
 function determinarColor(texto) {
     const t = texto.toLowerCase();
     if (t.startsWith("introducción")) return "var(--color-intro)";
@@ -130,18 +190,15 @@ function determinarNivel(texto) {
     const coincidencias = t.match(/^(\d+\.)+/); 
     if (!coincidencias) return "nivel-0"; 
     const partes = coincidencias[0].split('.').filter(Boolean);
-    if (partes.length === 1) return "nivel-0";
-    if (partes.length === 2) return "nivel-1";
-    return "nivel-2";
+    return partes.length === 1 ? "nivel-0" : (partes.length === 2 ? "nivel-1" : "nivel-2");
 }
 
-// 3. Carga Dinámica desde Google Sheets
+// 3. Carga Dinámica
 async function cargarDatos(gid) {
     try {
         const response = await fetch(`${URL_BASE_INICIAL}&gid=${gid}&cache=${Date.now()}`);
         const csvText = await response.text();
         const filasRaw = csvText.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        
         const data = filasRaw.map(linea => {
             const cols = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             return {
@@ -152,7 +209,6 @@ async function cargarDatos(gid) {
                 e: cols[4]?.replace(/^"|"$/g, '').trim() || "" 
             };
         }).filter(f => f.a || f.b || f.c);
-
         agruparPorCapitulos(data);
     } catch (err) { console.error("Error cargando tema:", err); }
 }
@@ -161,11 +217,9 @@ function agruparPorCapitulos(data) {
     let caps = [];
     let nombreCapituloActual = ""; 
     notasPorApartado = {}; 
-
     data.forEach((fila) => {
         let bloqueFila = "";
         const t = fila.a.toLowerCase();
-        
         if (t.startsWith("introducción")) bloqueFila = "INTRO";
         else if (t.startsWith("conclusión")) bloqueFila = "CONCLU";
         else if (t.startsWith("bibliografía")) bloqueFila = "BIBLIO";
@@ -185,18 +239,10 @@ function agruparPorCapitulos(data) {
     capitulosLibro = caps;
 }
 
-function getEstiloBotonTema(n) {
-    if (n >= 7 && n <= 10) return "border-color: #2e7d32; background: #e8f5e9; color: #1b5e20;"; 
-    if (n >= 14 && n <= 19) return "border-color: #c62828; background: #ffebee; color: #b71c1c;"; 
-    if (n >= 20 && n <= 25) return "border-color: #1565c0; background: #e3f2fd; color: #0d47a1;"; 
-    if (n === 6) return "border-color: #fbc02d; background: #fff9c4; color: #856404;"; 
-    return ""; 
-}
-
 function dibujarMenu() {
     const grid = document.getElementById('grid-temas');
     const temas = [2, 3, 4, 5, 6, 7, 8, 9, 10, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
-    const titulos = {
+    const titulos = { 
         2: "Concreción del Currículo", 3: "Tutoría y Orientación", 4: "Atención a la Diversidad",
         5: "Evaluación y Promoción", 6: "Las TIC en Educación", 7: "Conocimiento del Medio",
         8: "Tiempo Histórico", 9: "Entorno y Ecosistemas", 10: "Ciencias de la Naturaleza",
@@ -211,6 +257,14 @@ function dibujarMenu() {
             TEMA ${n}. ${titulos[n].toUpperCase()}
         </button>
     `).join('');
+}
+
+function getEstiloBotonTema(n) {
+    if (n >= 7 && n <= 10) return "border-color: #2e7d32; background: #e8f5e9; color: #1b5e20;"; 
+    if (n >= 14 && n <= 19) return "border-color: #c62828; background: #ffebee; color: #b71c1c;"; 
+    if (n >= 20 && n <= 25) return "border-color: #1565c0; background: #e3f2fd; color: #0d47a1;"; 
+    if (n === 6) return "border-color: #fbc02d; background: #fff9c4; color: #856404;"; 
+    return ""; 
 }
 
 function iniciarTema(numTema, gid) {
@@ -244,7 +298,7 @@ function irAlCapitulo(indexCap, subApartado) {
     document.getElementById('pantalla-libro').classList.remove('hidden');
     renderCapitulo(indexCap);
     setTimeout(() => {
-        const titulos = document.querySelectorAll('.apartado-titulo');
+        const titulos = document.querySelectorAll('.apartado-titulo span');
         for (let t of titulos) {
             if (t.innerText.trim() === subApartado.replace(/<[^>]*>/g, '').trim()) {
                 t.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -270,18 +324,17 @@ function renderCapitulo(idx) {
             const divA = document.createElement('div');
             divA.className = "apartado-titulo";
             divA.style.borderColor = cap.color;
-            divA.innerHTML = sec.a;
+            divA.innerHTML = `
+                <span>${sec.a}</span>
+                <div class="controles-punto">
+                    <button class="btn-punto btn-play-punto" onclick="gestionarVozPunto(this, event, '${sec.a}', 'play')">▶️ PUNTO</button>
+                    <button class="btn-punto" onclick="gestionarVozPunto(this, event, '${sec.a}', 'stop')">⏹️</button>
+                </div>`;
 
             let touchStartX = 0;
-            divA.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, {passive: true});
-
+            divA.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
             divA.addEventListener('touchend', e => {
-                let touchEndX = e.changedTouches[0].screenX;
-                if (touchEndX > touchStartX + 50) {
-                    abrirPanelExperto(sec.a);
-                }
+                if (e.changedTouches[0].screenX > touchStartX + 50) abrirPanelExperto(sec.a);
             });
 
             contenedor.appendChild(divA);
@@ -291,7 +344,6 @@ function renderCapitulo(idx) {
         if (sec.b || sec.c) {
             const fila = document.createElement('div');
             fila.className = "fila-estudio";
-            // DIBUJAMOS LOS CONTROLES DE VOZ (PLAY/PAUSE Y STOP)
             fila.innerHTML = `
                 <div class="margen-glosario">${aplicarRotulador(sec.b)}</div>
                 <div class="cuerpo-principal">
@@ -319,13 +371,9 @@ function abrirPanelExperto(tituloApartado) {
     }
 }
 
-function cerrarPanel() {
-    document.getElementById('panel-experto').classList.remove('abierto');
-}
+function cerrarPanel() { document.getElementById('panel-experto').classList.remove('abierto'); }
 
-function toggleD(elemento) { 
-    elemento.nextElementSibling.classList.toggle('visible'); 
-}
+function toggleD(elemento) { elemento.nextElementSibling.classList.toggle('visible'); }
 
 function actualizarBotones() {
     const pie = document.getElementById('pie-nav');
