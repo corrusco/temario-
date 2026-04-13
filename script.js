@@ -14,8 +14,9 @@ let currentCap = 0;
 let numTemaActual = 0;
 let notasPorApartado = {}; 
 
-// Variables de control de voz
+// --- VARIABLES DE CONTROL DE VOZ ---
 let mensajeActual = null;
+let estaPausado = false; // Control manual de pausa
 let listaLecturaPunto = [];
 let indiceLecturaPunto = 0;
 let modoLecturaPunto = false;
@@ -33,60 +34,60 @@ function aplicarRotulador(texto) {
     });
 }
 
-// --- GESTIÓN DE VOZ INDIVIDUAL (Play/Pausa y Stop) ---
+// --- GESTIÓN DE VOZ INDIVIDUAL ---
 function gestionarVoz(btn, event, accion) {
     event.stopPropagation(); 
     const tarjeta = btn.closest('.tarjeta-c');
     const btnPlay = tarjeta.querySelector('.btn-play');
-    const textoDiv = tarjeta.querySelector('.texto-c');
-    const textoLimpio = textoDiv.innerText;
+    const textoC = tarjeta.querySelector('.texto-c');
+    const textoLimpio = textoC.innerText;
 
-    // ACCIÓN: STOP (Reinicia todo)
+    // ACCIÓN: STOP (Reinicia de verdad)
     if (accion === 'stop') {
         window.speechSynthesis.cancel();
+        estaPausado = false;
         mensajeActual = null;
         modoLecturaPunto = false;
-        // Resetear todos los iconos de play a altavoz
         document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
         document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
+        document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
         return;
     }
 
-    // ACCIÓN: PLAY / PAUSA (Mantiene la posición)
+    // ACCIÓN: PLAY / PAUSA
     if (accion === 'playPause') {
-        // Si el navegador ya está "hablando"
+        // Si el sistema ya está hablando (sonando o pausado)
         if (window.speechSynthesis.speaking) {
-            
-            // Si es la misma tarjeta que estaba sonando: Alternamos pausa
+            // Y es el mismo texto que ya teníamos cargado
             if (mensajeActual && mensajeActual.text === textoLimpio) {
-                if (window.speechSynthesis.paused) {
+                if (estaPausado) {
                     window.speechSynthesis.resume();
+                    estaPausado = false;
                     btnPlay.innerText = "⏸️";
                 } else {
                     window.speechSynthesis.pause();
+                    estaPausado = true;
                     btnPlay.innerText = "▶️";
                 }
                 return;
-            } else {
-                // Si es otra tarjeta diferente: Cancelamos lo anterior y empezamos de cero
-                window.speechSynthesis.cancel();
-                document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
             }
         }
 
-        // Empezar lectura de cero
+        // Si es un texto nuevo o no estaba hablando, reseteamos e iniciamos
+        window.speechSynthesis.cancel();
+        document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
+        
         btnPlay.innerText = "⏸️";
+        estaPausado = false;
         mensajeActual = new SpeechSynthesisUtterance(textoLimpio);
         mensajeActual.lang = 'es-ES';
-        mensajeActual.rate = 1.0;
-
-        mensajeActual.onend = () => {
-            if (!modoLecturaPunto) { // Solo reseteamos si no estamos en modo "lectura de punto"
+        mensajeActual.onend = () => { 
+            if (!modoLecturaPunto) {
                 btnPlay.innerText = "🔊";
                 mensajeActual = null;
+                estaPausado = false;
             }
         };
-
         window.speechSynthesis.speak(mensajeActual);
     }
 }
@@ -94,10 +95,10 @@ function gestionarVoz(btn, event, accion) {
 // --- GESTIÓN DE VOZ PUNTO COMPLETO ---
 function gestionarVozPunto(btn, event, tituloTexto, accion) {
     event.stopPropagation();
-
     if (accion === 'stop') {
         window.speechSynthesis.cancel();
         modoLecturaPunto = false;
+        estaPausado = false;
         document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
         document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
         return;
@@ -110,25 +111,19 @@ function gestionarVozPunto(btn, event, tituloTexto, accion) {
         return;
     }
 
-    const itemsParaLeer = [];
-    itemsParaLeer.push({ texto: tituloTexto, elemento: null });
-
+    const itemsParaLeer = [{ texto: tituloTexto, elemento: null }];
     let siguiente = btn.closest('.apartado-titulo').nextElementSibling;
     while (siguiente && !siguiente.classList.contains('apartado-titulo')) {
         const textoC = siguiente.querySelector('.texto-c');
-        if (textoC) {
-            itemsParaLeer.push({ texto: textoC.innerText, elemento: textoC.closest('.tarjeta-c') });
-        }
+        if (textoC) itemsParaLeer.push({ texto: textoC.innerText, elemento: textoC.closest('.tarjeta-c') });
         siguiente = siguiente.nextElementSibling;
     }
 
     if (itemsParaLeer.length === 0) return;
-
     modoLecturaPunto = true;
     indiceLecturaPunto = 0;
     listaLecturaPunto = itemsParaLeer;
     btn.innerText = "⏹️ PARAR";
-    
     leerSiguienteDelPunto();
 }
 
@@ -139,26 +134,19 @@ function leerSiguienteDelPunto() {
         modoLecturaPunto = false;
         return;
     }
-
     const item = listaLecturaPunto[indiceLecturaPunto];
-    
     document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
     if (item.elemento) {
         item.elemento.classList.add('leyendo-ahora');
         item.elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-
     const mensaje = new SpeechSynthesisUtterance(item.texto);
     mensaje.lang = 'es-ES';
-    mensaje.onend = () => {
-        indiceLecturaPunto++;
-        leerSiguienteDelPunto();
-    };
-
+    mensaje.onend = () => { indiceLecturaPunto++; leerSiguienteDelPunto(); };
     window.speechSynthesis.speak(mensaje);
 }
 
-// 1. Verificación de Seguridad (PIN 2358)
+// 1. Verificación PIN
 function verificarPin() {
     const input = document.getElementById('pin-input').value;
     if (input === "2358") {
@@ -216,7 +204,7 @@ async function cargarDatos(gid) {
         const csvText = await response.text();
         const filasRaw = csvText.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         const data = filasRaw.map(linea => {
-            const cols = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            const cols = linea.split(/,(?=(?:(?:[^"]*"){2})*[^2]*$)/);
             return {
                 a: cols[0]?.replace(/^"|"$/g, '').trim() || "",
                 b: cols[1]?.replace(/^"|"$/g, '').trim() || "",
@@ -388,7 +376,6 @@ function abrirPanelExperto(tituloApartado) {
 }
 
 function cerrarPanel() { document.getElementById('panel-experto').classList.remove('abierto'); }
-
 function toggleD(elemento) { elemento.nextElementSibling.classList.toggle('visible'); }
 
 function actualizarBotones() {
