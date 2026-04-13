@@ -14,11 +14,11 @@ let currentCap = 0;
 let numTemaActual = 0;
 let notasPorApartado = {}; 
 
-// Variables para la lectura continua del punto
+// Variables de control de voz
+let mensajeActual = null;
 let listaLecturaPunto = [];
 let indiceLecturaPunto = 0;
 let modoLecturaPunto = false;
-let mensajeActual = null;
 
 // --- TRADUCTOR DE ROTULADORES ---
 function aplicarRotulador(texto) {
@@ -33,22 +33,31 @@ function aplicarRotulador(texto) {
     });
 }
 
-// --- LECTOR DE CELDA INDIVIDUAL (CON PAUSA/STOP) ---
+// --- GESTIÓN DE VOZ INDIVIDUAL (Play/Pausa y Stop) ---
 function gestionarVoz(btn, event, accion) {
     event.stopPropagation(); 
     const tarjeta = btn.closest('.tarjeta-c');
     const btnPlay = tarjeta.querySelector('.btn-play');
-    const textoLimpio = tarjeta.querySelector('.texto-c').innerText;
+    const textoDiv = tarjeta.querySelector('.texto-c');
+    const textoLimpio = textoDiv.innerText;
 
+    // ACCIÓN: STOP (Reinicia todo)
     if (accion === 'stop') {
         window.speechSynthesis.cancel();
-        document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
         mensajeActual = null;
+        modoLecturaPunto = false;
+        // Resetear todos los iconos de play a altavoz
+        document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
+        document.querySelectorAll('.btn-play-punto').forEach(b => b.innerText = "▶️ PUNTO");
         return;
     }
 
+    // ACCIÓN: PLAY / PAUSA (Mantiene la posición)
     if (accion === 'playPause') {
+        // Si el navegador ya está "hablando"
         if (window.speechSynthesis.speaking) {
+            
+            // Si es la misma tarjeta que estaba sonando: Alternamos pausa
             if (mensajeActual && mensajeActual.text === textoLimpio) {
                 if (window.speechSynthesis.paused) {
                     window.speechSynthesis.resume();
@@ -59,20 +68,30 @@ function gestionarVoz(btn, event, accion) {
                 }
                 return;
             } else {
+                // Si es otra tarjeta diferente: Cancelamos lo anterior y empezamos de cero
                 window.speechSynthesis.cancel();
                 document.querySelectorAll('.btn-play').forEach(b => b.innerText = "🔊");
             }
         }
 
+        // Empezar lectura de cero
         btnPlay.innerText = "⏸️";
         mensajeActual = new SpeechSynthesisUtterance(textoLimpio);
         mensajeActual.lang = 'es-ES';
-        mensajeActual.onend = () => { btnPlay.innerText = "🔊"; mensajeActual = null; };
+        mensajeActual.rate = 1.0;
+
+        mensajeActual.onend = () => {
+            if (!modoLecturaPunto) { // Solo reseteamos si no estamos en modo "lectura de punto"
+                btnPlay.innerText = "🔊";
+                mensajeActual = null;
+            }
+        };
+
         window.speechSynthesis.speak(mensajeActual);
     }
 }
 
-// --- LECTOR DE PUNTO COMPLETO (TÍTULO + COLUMNA C) ---
+// --- GESTIÓN DE VOZ PUNTO COMPLETO ---
 function gestionarVozPunto(btn, event, tituloTexto, accion) {
     event.stopPropagation();
 
@@ -84,7 +103,6 @@ function gestionarVozPunto(btn, event, tituloTexto, accion) {
         return;
     }
 
-    // Si ya está leyendo este punto y pulsamos de nuevo, paramos
     if (modoLecturaPunto && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         modoLecturaPunto = false;
@@ -92,7 +110,6 @@ function gestionarVozPunto(btn, event, tituloTexto, accion) {
         return;
     }
 
-    // Construimos la lista: primero el título, luego las columnas C
     const itemsParaLeer = [];
     itemsParaLeer.push({ texto: tituloTexto, elemento: null });
 
@@ -125,7 +142,6 @@ function leerSiguienteDelPunto() {
 
     const item = listaLecturaPunto[indiceLecturaPunto];
     
-    // Resaltado visual si es una tarjeta
     document.querySelectorAll('.tarjeta-c').forEach(t => t.classList.remove('leyendo-ahora'));
     if (item.elemento) {
         item.elemento.classList.add('leyendo-ahora');
