@@ -203,15 +203,14 @@ body {
     padding: 14px; 
     font-size: 0.95rem;
     line-height: 1.4;
-    padding-bottom: 45px;
+    padding-bottom: 45px; /* Espacio para que el texto no tape los botones */
     transition: background-color 0.4s ease;
 }
 
-/* EFECTO "LECTOR" PARA TARJETAS */
+/* EFECTO "HIGHLIGHT" CUANDO LA VOZ LEE ESTA TARJETA */
 .leyendo-ahora {
     background-color: rgba(251, 140, 0, 0.1) !important;
     border-color: var(--color-intro) !important;
-    box-shadow: 0 0 10px rgba(251, 140, 0, 0.2);
 }
 
 .referencia-d { 
@@ -239,8 +238,8 @@ body {
     background: #ffffff;
     border: 1px solid #ddd;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     font-size: 1.1rem;
     cursor: pointer;
     display: flex;
@@ -249,7 +248,9 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* PANEL LATERAL Y NAV */
+.btn-voz:active { transform: scale(0.9); background: #f0f0f0; }
+
+/* PANEL LATERAL Y NAVEGACIÓN */
 #panel-experto {
     position: fixed;
     top: 0;
