@@ -1,4 +1,4 @@
-/* --- VARIABLES DE COLOR Y PALETA --- */
+//* --- VARIABLES DE COLOR Y PALETA --- */
 :root {
     --color-intro: #fb8c00;    /* Naranja estándar */
     --color-punto1: #2e7d32;   /* Verde */
@@ -192,6 +192,7 @@ body {
 }
 
 .tarjeta-c { 
+    position: relative; /* ¡CRÍTICO! Necesario para colocar el botón del altavoz dentro de la tarjeta */
     background: #fff;
     border: 1.5px solid; 
     border-radius: 10px;
@@ -288,6 +289,25 @@ body {
     border: 1px solid #ccc;
     border-radius: 5px;
     font-weight: bold;
+}
+
+/* --- BOTÓN LECTURA EN VOZ ALTA --- */
+.btn-leer {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
 }
 
 /* --- SISTEMA DE ROTULADO FLUORESCENTE --- */
